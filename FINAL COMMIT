@@ -1,0 +1,138 @@
+// Ian Morrissey
+// 4-1-2025
+// Subclass D&D
+
+
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
+class Character {
+    // base character
+    // All of the stats are list
+    // allows for scalability long term like leveling up
+    private String name;
+    private int level;
+    private int STR, DEX, CON, INT, WIS, CHA;
+    private int HP, AC;
+    private ArrayList<String> feats;
+    private Random rand = new Random();
+
+    // Default constructor, makes a level 1 character "Player" with all stats at 10
+    public Character() {
+        this("Player", 1);
+    }
+
+    // Constructor that takes a name and level and gets all of the stats
+    public Character(String name, int level) {
+        if (level < 1) {
+            throw new IllegalArgumentException("Level must be at least 1");
+        }
+        this.name = name;
+        this.level = level;
+        this.feats = new ArrayList<>();
+
+        if (name.equals("Player")) {
+            this.STR = this.DEX = this.CON = this.INT = this.WIS = this.CHA = 10;
+        } else {
+            this.STR = rollAbilityScore();
+            this.DEX = rollAbilityScore();
+            this.CON = rollAbilityScore();
+            this.INT = rollAbilityScore();
+            this.WIS = rollAbilityScore();
+            this.CHA = rollAbilityScore();
+        }
+
+        this.HP = calculateHitPoints();
+        this.AC = calculateArmorClass();
+    }
+
+    // Rolls four six-sided dice sums top 3
+    private int rollAbilityScore() {
+        int[] rolls = {rand.nextInt(6) + 1, rand.nextInt(6) + 1, rand.nextInt(6) + 1, rand.nextInt(6) + 1};
+        Arrays.sort(rolls);
+        return rolls[1] + rolls[2] + rolls[3];
+    }
+
+    // Converts ability scores to a D&D thingy
+    private int getAbilityModifier(int score) {
+        return Math.max((score - 10) / 2, 0);
+    }
+
+    // Calculates HP based on level and ther modifier
+    private int calculateHitPoints() {
+        if (level == 1) {
+            return 10 + getAbilityModifier(CON);
+        }
+        return 10 + getAbilityModifier(CON) + (level - 1) * (6 + getAbilityModifier(CON));
+    }
+
+    // Calculates AC based on Dexterity modifier
+    private int calculateArmorClass() {
+        return 10 + getAbilityModifier(DEX);
+    }
+
+    // Levels up the character and recalculates stats
+    public void levelUp() {
+        level++;
+        HP = calculateHitPoints();
+        AC = calculateArmorClass();
+    }
+
+    // Adds a feat to the character
+    public void addFeat(String feat) {
+        feats.add(feat);
+    }
+
+    // Modifies ability scores for subclasses
+    public void modifyStats(int strMod, int dexMod, int conMod, int intMod, int wisMod, int chaMod) {
+        this.STR += strMod;
+        this.DEX += dexMod;
+        this.CON += conMod;
+        this.INT += intMod;
+        this.WIS += wisMod;
+        this.CHA += chaMod;
+        this.HP = calculateHitPoints();
+        this.AC = calculateArmorClass();
+    }
+
+    // Returns a string with all the characters info
+    public String toString() {
+        return "Character: " + name + "  Level: " + level + "\n" +
+               "HP: " + HP + "  AC: " + AC + "\n" +
+               "STR: " + STR + "  DEX: " + DEX + "  CON: " + CON + "\n" +
+               "INT: " + INT + "  WIS: " + WIS + "  CHA: " + CHA + "\n" +
+               "Feats: " + String.join(", ", feats);
+    }
+}
+
+class Barbarian extends Character {
+    // Barbarian subclass
+    // Gets the feats listed
+    public Barbarian(String name, int level) {
+        super(name, level);
+        modifyStats(2, 0, 1, 0, 0, 0);
+        addFeat("Rage");
+        addFeat("Unarmored Defense");
+    }
+}
+
+class Bard extends Character {
+    // Bard subclass 
+    // Gets the feats listed
+    public Bard(String name, int level) {
+        super(name, level);
+        modifyStats(0, 1, 0, 0, 0, 2);
+        addFeat("Inspiration");
+        addFeat("Jack of all Trades");
+    }
+}
+
+// Main class prints a proof of concept
+public class Main {
+    public static void main(String[] args) {
+        Barbarian player = new Barbarian("Ian", 3);
+        System.out.println(player);
+    }
+}
